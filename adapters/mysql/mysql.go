@@ -1,16 +1,19 @@
 package mysql
 
 import (
-	"github.com/go-sql-driver/mysql"
+	"strings"
+
 	"github.com/samonzeweb/godb/dberror"
 )
+
+var Driver = "postgres"
 
 type MySQL struct{}
 
 var Adapter = MySQL{}
 
 func (MySQL) DriverName() string {
-	return "mysql"
+	return Driver
 }
 
 func (MySQL) Quote(identifier string) string {
@@ -21,14 +24,17 @@ func (MySQL) ParseError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if e, ok := err.(*mysql.MySQLError); ok {
-		switch e.Number {
-		case 1062:
-			return dberror.UniqueConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "key '", "'"), Err: e}
-		case 1452:
-			return dberror.CheckConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "CONSTRAINT `", "`"), Err: e}
-		}
+	msg := err.Error()
+	if strings.Contains(msg, "duplicate entry") {
+		return dberror.UniqueConstraint{Message: msg, Field: dberror.ExtractStr(msg, "key '", "'"), Err: err}
 	}
 
+	if strings.Contains(msg, "constraint") && strings.Contains(msg, "foreign key") {
+		return dberror.CheckConstraint{Message: msg, Field: dberror.ExtractStr(msg, "key '", "'"), Err: err}
+	}
+
+	if strings.Contains(msg, "constraint") && strings.Contains(msg, "check") {
+		return dberror.ForeignKeyConstraint{Message: msg, Field: dberror.ExtractStr(msg, "constraint '", "'"), Err: err}
+	}
 	return err
 }

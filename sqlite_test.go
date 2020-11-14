@@ -8,6 +8,7 @@ import (
 	"github.com/samonzeweb/godb/adapters/sqlite"
 	"github.com/samonzeweb/godb/dbtests/common"
 
+	_ "github.com/mattn/go-sqlite3"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -5,17 +5,18 @@ import (
 	"strconv"
 	"strings"
 
-	pq "github.com/lib/pq"
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dberror"
 )
+
+var Driver = "postgres"
 
 type PostgreSQL struct{}
 
 var Adapter = PostgreSQL{}
 
 func (PostgreSQL) DriverName() string {
-	return "postgres"
+	return Driver
 }
 
 func (PostgreSQL) Quote(identifier string) string {
@@ -68,16 +69,15 @@ func (p PostgreSQL) ParseError(err error) error {
 	if err == nil {
 		return nil
 	}
-
-	if e, ok := err.(*pq.Error); ok {
-		switch e.Code {
-		case "23505":
-			return dberror.UniqueConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
-		case "23503":
-			return dberror.ForeignKeyConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
-		case "23514":
-			return dberror.CheckConstraint{Message: e.Error(), Field: dberror.ExtractStr(e.Message, "constraint \"", "\""), Err: e}
-		}
+	msg := err.Error()
+	if strings.Contains(msg, "duplicate key value violates unique constraint") {
+		return dberror.UniqueConstraint{Message: msg, Field: dberror.ExtractStr(msg, "constraint \"", "\""), Err: err}
+	}
+	if strings.Contains(msg, "violates foreign key constraint") {
+		return dberror.ForeignKeyConstraint{Message: msg, Field: dberror.ExtractStr(msg, "constraint \"", "\""), Err: err}
+	}
+	if strings.Contains(msg, "violates check constraint") {
+		return dberror.CheckConstraint{Message: msg, Field: dberror.ExtractStr(msg, "constraint \"", "\""), Err: err}
 	}
 
 	return err

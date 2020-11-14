@@ -8,9 +8,9 @@ import (
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dberror"
 	"github.com/samonzeweb/godb/dbreflect"
-
-	_ "github.com/denisenkom/go-mssqldb"
 )
+
+var Driver = "sqlserver"
 
 // init registers types of mssql package corresponding to fields values
 func init() {
@@ -22,7 +22,7 @@ type MSSQL struct{}
 var Adapter = MSSQL{}
 
 func (MSSQL) DriverName() string {
-	return "sqlserver"
+	return Driver
 }
 
 func (MSSQL) Quote(identifier string) string {
