@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	_ "github.com/lib/pq"
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dberror"
 )

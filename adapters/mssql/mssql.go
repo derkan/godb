@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/samonzeweb/godb/adapters"
 	"github.com/samonzeweb/godb/dberror"
 	"github.com/samonzeweb/godb/dbreflect"

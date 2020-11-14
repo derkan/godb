@@ -3,6 +3,7 @@ package mysql
 import (
 	"strings"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/samonzeweb/godb/dberror"
 )
 
